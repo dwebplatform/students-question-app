@@ -23,30 +23,30 @@
                  <div class='row'>
                     <% question.variants.forEach(function(variant,vindex){ %>
                         <div  class='col-6  ' style="border: 3px solid #eee;">
-                        
                             <input class="my-auto"
                          style="margin: 0 0 0 auto;" type='checkbox'  data-question-id="<%=question._id%>"
                         data-question-variant-index="<%=variant._id%>"/>
-                          
                         <p class='mr-auto'><%=variant.text%></p>
                         </div>
                         <% }) %>
-                      
                 </div>
              </p>
-             <button type="button" data-selected-index="<%=i%>" class="btn btn-primary js-next-question">Следующий</button>
+             <div>
+                 <%if(!(i==0)) { %>
+                    <button  type="button" data-selected-index="<%=i%>"class="btn btn-primary js-prev-question">Предыдущий</button>
+                    <% } %>
+                <button type="button" data-selected-index="<%=i%>" class="btn btn-primary js-next-question">Следующий</button>
+             </div>
             </div>
          </div>
 <% }) %>
         <div class='form-control not-selected js-send-result-container'>
             <p> Вы уверены что готовы отправить результат ?</p>
+            <button  type="button" data-selected-index="<%=1%>" class="btn btn-primary js-check-question">Проверить</button>
             <button type="submit" class="btn btn-primary">Отправить</button>
         </div>
 </form>
-
 <script>
-
-
     /*
     questions:[
         "id2322":{
@@ -81,7 +81,6 @@
         e.preventDefault();
         let checkboxes = $('[type="checkbox"]:checked');
         const questionsResult = {};
-          
         checkboxes.each(function(i, checkbox){ 
             let questionId = $(checkbox).data('question-id');
             let variantIndex = $(checkbox).data('question-variant-index');
@@ -90,7 +89,6 @@
             };
         });
         let userId ="<%=userId ? userId:''%>";
-        console.log(userId);
         let response = await fetch('/send-result',{
             method: 'POST',
             headers: {
@@ -100,13 +98,42 @@
                 userId:userId,
                 questions:questionsResult
         })
-        
     });
-    let data = await response.json();
-    console.log(data);
-    console.log(data);
+    let incomeData = await response.json();
+    if(incomeData.status=='ok'){
+        window.location.href = `/student-result/${userId}`;
+    }
 });
-    $('.js-next-question').click(function(e){
+    
+$('.js-check-question').click(function(e){
+    e.preventDefault();
+    $('.js-send-result-container').removeClass('selected');
+    $('.js-send-result-container').addClass('not-selected');
+    let curEl = $(`.js-selected-item-0`);
+    curEl.removeClass('not-selected');
+    curEl.addClass('selected');
+    
+});
+
+$('.js-prev-question').click(function(e){
+    e.preventDefault();
+    let index = $(e.target).data('selected-index');
+    let curEl = $(`.js-selected-item-${index}`);
+    let prevEl =$(`.js-selected-item-${index-1}`);
+    let totalNumOfQuestions= "<%=questions.length%>";
+    console.log(prevEl)
+     
+    if(curEl){
+        curEl.addClass('not-selected');
+        curEl.removeClass('selected');
+    }
+    if(prevEl){
+        prevEl.addClass('selected');
+        prevEl.removeClass('not-selected');
+    }
+});
+
+$('.js-next-question').click(function(e){
         e.preventDefault();
         let index = $(e.target).data('selected-index');
         let curEl = $(`.js-selected-item-${index}`);

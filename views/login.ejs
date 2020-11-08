@@ -45,7 +45,8 @@
             body: JSON.stringify(jsonData)
          });
           let finalRes = await response.json();
-         if(finalRes.status=='ok'){
+          console.log(finalRes);
+          if(finalRes.status=='ok'){
             window.location.href ='/questions';
          }
     });

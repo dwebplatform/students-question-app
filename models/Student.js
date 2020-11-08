@@ -16,6 +16,11 @@ const studentSchema = mongoose.Schema({
         type:String,
         required: true
     },
+    hasParticipated:{
+        type: Boolean,
+        required: true,
+        default: false,
+    },
     answers:[
         {
         id:{type:String, required: true},

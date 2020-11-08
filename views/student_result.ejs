@@ -1,0 +1,22 @@
+<h3>Результат тестирования для студента с id:( <%=student._id%>)</h3>
+<div class="card">
+    <div class="card-body">
+      <h5 class="card-title p-3"><%=student.name%> <%=student.secondname%></h5>
+       <% 
+       var correctNumber = 0;
+       var incorrectNumber = 0;
+       var totalNumber =student.answers.length;
+       student.answers.forEach(answer=>{
+        if(answer.correctIndex === answer.answerIndex){
+            correctNumber++;
+        } else{
+            incorrectNumber++;
+        }
+       })%>
+      <p class="card-text p-3">
+           <span>Всего вопросов : <%=totalNumber%></span><br/>
+           <span class="text-success">правильных: <%=correctNumber%></span><br/>
+           <span class="text-danger">неправильных: <%=incorrectNumber%></span><br/>
+      </p> 
+    </div>
+  </div>

@@ -38,70 +38,9 @@ connectDB();
 
 
 
-app.get('/generate_questions',async(req,res)=>{
-    const locquestions = [{
-        title:'Что такое акватинта?',
-        variants:[
-            {text:'Освежительный напиток', isCorrect:false},
-            {text:'Чернила', isCorrect:false},
-            {text:'Метод гравирования', isCorrect: true},
-            {text:'Вид акварели', isCorrect:false}
-        ]
-    },
-    {
-        title:'Столицей какого образования является город Йошкар-Ола?',
-        variants:[
-            {text:'Область', isCorrect:false},
-            {text:'Край', isCorrect:false},
-            {text:'Республика', isCorrect: true},
-            {text:'Округ', isCorrect:false}
-        ]
-    },
-    {
-        title:'Кто сказал: "Какой русский не любит быстрой езды"?',
-        variants:[
-            {text:'Гоголь', isCorrect:false},
-            {text:'Чехов', isCorrect:false},
-            {text:'Толстой', isCorrect: true},
-            {text:'Мцыри', isCorrect:false}
-        ]
-    },
-    {
-        title:'Что такое акватинта?',
-        variants:[
-            {text:'Освежительный напиток', isCorrect:false},
-            {text:'Чернила', isCorrect:false},
-            {text:'Метод гравирования', isCorrect: true},
-            {text:'Вид акварели', isCorrect:false}
-        ]
-    },
-    {
-        title:'Что такое акватинта?',
-        variants:[
-            {text:'Освежительный напиток', isCorrect:false},
-            {text:'Чернила', isCorrect:false},
-            {text:'Метод гравирования', isCorrect: true},
-            {text:'Вид акварели', isCorrect:false}
-        ]
-    }
-    ];
-    // locquestions.forEach(async (q)=>{
-    //     let newQ = new  Question({
-    //         title:q.title,
-    //         variants: q.variants
-    //     });
-    //     await newQ.save();
-        
-    // })
-    return res.json({
-        status:'ok',
-        msg:'created'
-    });
-    });
 app.set("view engine", "ejs");
 app.use(expressLayouts);
 
- 
 app.use('/',(req,res,next)=>{
     if(req.query.admin_key==='1234'){
         req.isAdmin = true;
@@ -113,10 +52,16 @@ app.get('/questions',async (req,res)=>{
     if(req.cookies.userId){
         const {userId} = JSON.parse(req.cookies.userId);
         try{
-            let student = await Student.find({_id: userId});
+            let student = await Student.findOne({_id: userId}).exec();
             if(student){
                 // выводим список вопросов
                 let allTenQuestions = await Question.find({});
+                if(student.hasParticipated){
+                return res.render('student_has_participated',{
+                    student: student,
+                    isAdmin:  req.isAdmin||false
+                });
+              }  
               return  res.render('questions',{
                     questions:allTenQuestions,
                     userId: userId||0,
@@ -126,12 +71,10 @@ app.get('/questions',async (req,res)=>{
         }catch(e){
             console.log(e);
         }
-        return res.json({status:'error'});     
-            
+        return res.redirect('/login');
     } else {
         return res.redirect('/login');
     }
-   
 });
 
 
@@ -147,6 +90,24 @@ app.get('/login',(req,res)=>{
 });
 
 
+
+app.get('/student-result/:id',async(req,res)=>{
+    let id = req.params.id;
+    if(!req.cookies.userId||id!==req.params.id){
+        return res.redirect('/login');
+    }
+    else {
+        try{
+            let student = await Student.findOne({_id: id}).exec();
+            return res.render('student_result',{
+                student: student,
+                isAdmin: req.isAdmin||false,
+            });
+        } catch(e){
+            return res.json({status:'error',msg:'Не удалось найти  студента с таким id'});
+        }
+    }
+});
 
 app.post('/send-result',async(req,res)=>{
     if(!req.body.userId){
@@ -176,11 +137,18 @@ app.post('/send-result',async(req,res)=>{
         }
           try{
             let updatedStudent = await Student.updateOne({ _id: req.body.userId }, {
+                hasParticipated: true,
                 answers: questionArrResult
               });
-            return res.json(updatedStudent)
+            return res.json({
+                status:'ok',
+                msg:'Вы успешно завершили тестирование'
+            })
         }catch(e){
-                console.log(e);
+            return res.json({
+                status:'error',
+                msg:'не удалось сохранить вопросы'
+            });
         }
      }
 })
@@ -192,7 +160,9 @@ app.post('/login',async (req,res)=>{
         group:req.body.group||"",
         password:req.body.password||""
     });
-    try{
+    console.log(student);
+    await student.save();
+     try{
         let savedStudent = await student.save();
         if(savedStudent){
             res.cookie('userId', JSON.stringify({userId: savedStudent._id}));
@@ -201,12 +171,11 @@ app.post('/login',async (req,res)=>{
                 msg:'successfully saved'
             });
         }
-         
+
     }catch(e){
+        console.log(e)
         return res.json({status:'error',msg:'не удалось создать нового студента'});
     }
-    
-     
 });
 
 
@@ -279,6 +248,7 @@ app.get('/admin/logout',(req,res)=>{
 })
 app.get('/admin/questions',async(req,res)=>{
     let allQuestions = await Question.find({});
+
     return res.render('admin_questions',{
         questions: allQuestions||[],
         isAdmin: req.isAdmin||false,
