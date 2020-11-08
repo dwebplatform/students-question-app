@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const saltNumber = 10;
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
