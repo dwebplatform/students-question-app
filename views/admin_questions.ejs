@@ -1,0 +1,52 @@
+<h3 class="py-3">Таблица вопросов</h3>
+<div class="my-3"><a href="/admin/questions/create" class="btn btn-primary" >Создать новый вопрос</a></div>
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">id</th>
+        <th scope="col">Текст Вопроса</th>
+        <th scope="col">1ый вариант</th>
+        <th scope="col">2ой вариант</th>
+        <th scope="col">3ой вариант</th>
+        <th scope="col">4ой вариант</th>
+        <th scope="col">редактировать</th>
+        <th scope="col">удалить вопрос</th>
+      </tr>
+    </thead>
+    <tbody>
+        <% questions.forEach( function(question){ %>
+            <tr>
+                <th scope="row"><%=question._id%></th>
+                <td><%=question.title %></td>
+                <% for(var variant of question.variants){ %>
+                    <% if(variant.isCorrect){%>
+                        <td class="text-success"><%= variant.text%></td>
+                     <% } else{ %>    
+                    <td class="text-danger"><%= variant.text%></td>
+                    <% } %>
+                <% } %>
+                 <td><a class="btn btn-primary" href="/admin/questions/<%=question._id%>">перейти</a></td>
+                  <td><a onclick="deleteQuestion(this);" data-question-id="<%=question._id%>" class="btn btn-light " style="cursor: pointer;"><i class="fa fa-trash text-danger " aria-hidden="true"></i></a></td>
+                </tr>
+        <% })%>
+    </tbody>
+  </table>
+
+  <script> 
+   async function deleteQuestion(e){
+      let el = $(e);
+      let id = el.data('question-id');
+       let response = await fetch(`/admin/questions/${id}`,{
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        
+      });
+      let incomeData = await response.json();
+      if(incomeData.status=='ok'){
+        document.location.reload();
+
+      }
+    }
+  </script>

@@ -1,0 +1,27 @@
+
+
+<h3>Admin Page</h3>
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">id</th>
+        <th scope="col">Имя студента</th>
+        <th scope="col">Фамилия</th>
+        <th scope="col">Группа</th>
+        <th scope="col">Кол-во правильных</th>
+        <th scope="col">Кол-во неправильных</th>
+      </tr>
+    </thead>
+    <tbody>
+        <% students.forEach(function(student){ %>
+            <tr>
+                <th scope="row"><%=student._id%></th>
+                <td><%=student.name%></td>
+                <td><%=student.secondname%></td>
+                <td><%=student.group%></td>
+                <td> </td>
+                <td> </td>
+              </tr>         
+        <% }) %>
+    </tbody>
+  </table>

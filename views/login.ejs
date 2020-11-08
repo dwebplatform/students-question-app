@@ -1,0 +1,52 @@
+<div class="container">
+<form  action="/login" id="login-form" method="post">
+    <div class="form-group">
+      <label for="name">Имя студента</label>
+      <input type="text" name="name" class="form-control" id="name"
+        placeholder="Имя ">
+     </div>
+    <div class="form-group">
+      <label for="secondname">Фамилия студента</label>
+      <input type="text" name="secondname" class="form-control" placeholder="Фамилия">
+    </div>
+    <div class="form-group">
+        <label for="group">Группа студента</label>
+        <input type="text" name="group" class="form-control" placeholder="Группа">
+      </div>
+    <div class="form-group">
+        <label for="exampleInputPassword1">Пароль</label>
+        <input type="password" name="password" class="form-control" placeholder="Пароль">
+      </div>
+     <button type="submit" class="w-100 btn btn-primary">Войти</button>
+  </form>
+
+</div>
+<script>
+
+    function parseUrlToJson(url){
+        const params = new URLSearchParams(url);
+        let obj={}
+        for (const [key, value] of params.entries()) {
+            obj[key] = value;
+        }
+        return obj;
+    }
+     $('#login-form').on('submit',async (e)=>{
+        e.preventDefault();
+        console.log('sbubmitted');
+        let data = $(e.target).serialize();
+        let jsonData = parseUrlToJson(data);
+
+        let response = await fetch('/login',{
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(jsonData)
+         });
+          let finalRes = await response.json();
+         if(finalRes.status=='ok'){
+            window.location.href ='/questions';
+         }
+    });
+</script>

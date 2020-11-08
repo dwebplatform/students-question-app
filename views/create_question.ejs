@@ -1,0 +1,99 @@
+
+<% var variants =[{
+    key:'first',
+    text:'первый'
+},{
+    key:'second',
+    text:'второй'
+
+},{
+    key:'third',
+    text:'третий'
+},{
+    key:'fourth',
+    text:'четвертый'
+}];%>
+
+
+
+<!-- MODAL  -->
+ 
+<div class="modal fade" id="mymodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-success" id="mymodalLabel"></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body js-modal-body">
+          
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+         </div>
+      </div>
+    </div>
+  </div>
+<!-- ENDMODAL -->
+
+<div class='container'>
+    <form method='post' id='create-question-form' action='/admin/questions/create'>
+        <div class="form-group">
+            <label for='title'>Введите текст вопроса</label>
+            <input type="text" class="form-control" id='title' name="title"/>
+        </div>
+        <div class="row">
+            <% for(var answer of variants){%>
+                <div class="col">
+                    <div class="form-group">
+                        <label for='<%=answer.key%>_answer'>Введите <%=answer.text%> вариант</label>
+                        <input type="text" id='<%=answer.key%>_answer' class="form-control" name="<%=answer.key%>_answer"/>
+                        <div class="form-check">
+                            <label for='<%=answer.key%>_answer_is_correct'>Пометьте если это правильный вариант</label>
+                            <input type="checkbox"   name="<%=answer.key%>_answer_is_correct"/>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+           
+         </div>
+        <button type="submit" class="btn btn-primary" >Создать вопрос</button>
+        </form>
+</div>
+<script>
+    function parseUrlToJson(url){
+        const params = new URLSearchParams(url);
+        let obj={}
+        for (const [key, value] of params.entries()) {
+            obj[key] = value;
+        }
+        return obj;
+    }
+    $('#create-question-form').on('submit', async function(e){
+        e.preventDefault();
+        let data = parseUrlToJson( $(e.target).serialize()); 
+         let response = await fetch('/admin/questions/create',{
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(data)
+         });
+         let incomingData = await response.json();
+         console.log(incomingData);
+         if(incomingData.status=='ok'){
+             $('.js-modal-body').html(incomingData.msg);
+             $('.js-modal-body').removeClass('text-danger');
+             $('.js-modal-body').addClass('text-success');
+
+             $('#mymodal').modal('show')
+         } else {
+            $('.js-modal-body').removeClass('text-success');
+            $('.js-modal-body').addClass('text-danger');
+            $('.js-modal-body').html(incomingData.msg);
+            $('#mymodal').modal('show');
+         }
+    })
+</script>

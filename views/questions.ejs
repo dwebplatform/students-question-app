@@ -1,0 +1,135 @@
+ 
+<style>
+    .selected{
+        display: block;
+    }
+    .not-selected{
+        display: none;
+    }
+</style>
+<form method="post" id='questions-form' action="/check_answers">
+<% questions.forEach(function(question,i){ %>
+        <div 
+        <% if(i==0){ 
+            %>
+            class="card p-3 selected js-selected-item-<%=i %>"
+            <% } else { %>
+            class="card p-3 not-selected js-selected-item-<%=i %>"
+           <% } %> 
+        >
+            <div class="card-body">
+             <h5 class="card-title"><%= question.title %></h5>
+             <p class="card-text">
+                 <div class='row'>
+                    <% question.variants.forEach(function(variant,vindex){ %>
+                        <div  class='col-6  ' style="border: 3px solid #eee;">
+                        
+                            <input class="my-auto"
+                         style="margin: 0 0 0 auto;" type='checkbox'  data-question-id="<%=question._id%>"
+                        data-question-variant-index="<%=variant._id%>"/>
+                          
+                        <p class='mr-auto'><%=variant.text%></p>
+                        </div>
+                        <% }) %>
+                      
+                </div>
+             </p>
+             <button type="button" data-selected-index="<%=i%>" class="btn btn-primary js-next-question">Следующий</button>
+            </div>
+         </div>
+<% }) %>
+        <div class='form-control not-selected js-send-result-container'>
+            <p> Вы уверены что готовы отправить результат ?</p>
+            <button type="submit" class="btn btn-primary">Отправить</button>
+        </div>
+</form>
+
+<script>
+
+
+    /*
+    questions:[
+        "id2322":{
+            answer:1,
+        },
+        second:{
+            answer:2,
+
+        },
+        thir
+    ]
+    */
+    function getFormData($form){
+        var unindexed_array = $form.serializeArray();
+        var indexed_array = {};
+    
+        $.map(unindexed_array, function(n, i){
+            indexed_array[n['name']] = n['value'];
+        });
+    
+        return indexed_array;
+    }
+    function parseUrlToJson(url){
+        const params = new URLSearchParams(url);
+        let obj={};
+        for (const [key, value] of params.entries()) {
+            obj[key] = value;
+        }
+        return obj;
+    }
+    $('#questions-form').on('submit',async (e)=>{
+        e.preventDefault();
+        let checkboxes = $('[type="checkbox"]:checked');
+        const questionsResult = {};
+          
+        checkboxes.each(function(i, checkbox){ 
+            let questionId = $(checkbox).data('question-id');
+            let variantIndex = $(checkbox).data('question-variant-index');
+            questionsResult[questionId] ={
+                answerIndex:variantIndex
+            };
+        });
+        let userId ="<%=userId ? userId:''%>";
+        console.log(userId);
+        let response = await fetch('/send-result',{
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({
+                userId:userId,
+                questions:questionsResult
+        })
+        
+    });
+    let data = await response.json();
+    console.log(data);
+    console.log(data);
+});
+    $('.js-next-question').click(function(e){
+        e.preventDefault();
+        let index = $(e.target).data('selected-index');
+        let curEl = $(`.js-selected-item-${index}`);
+        let nextEl =$(`.js-selected-item-${index+1}`);
+        let totalNumOfQuestions= "<%=questions.length%>";
+        if(index+1==totalNumOfQuestions){// последний вопрос
+            curEl.addClass('not-selected');
+            curEl.removeClass('selected');
+            $('.js-send-result-container').addClass('selected');
+            $('.js-send-result-container').removeClass('not-selected');
+            
+            return;
+
+        }
+        if(curEl){
+            curEl.addClass('not-selected');
+            curEl.removeClass('selected');
+        }
+        if(nextEl){
+            nextEl.addClass('selected');
+            nextEl.removeClass('not-selected');
+        }
+    })
+</script>
+
+ 

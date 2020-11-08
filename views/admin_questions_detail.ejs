@@ -1,0 +1,66 @@
+<style>
+
+    .hide{
+        display: none;
+    }
+</style>
+
+<h3 class="my-3">Вопрос с id: <%=question._id%></h3>
+
+
+<form id="edit-question-form">
+    <div class="form-group">
+        <input type="text" name="title" class="form-control js-title" value="<%=question.title%>"/>
+    </div>
+    <h5>Варианты ответа</h5>
+    <div class="form-group">
+         <% question.variants.forEach(function(variant,i){ %>
+            <div class="d-flex py-3"  data-variant-id="<%=variant._id%>">
+                     
+                    <input  type="text" name="text[<%=i%>]"  class="form-control w-50 mr-3 js-variant-text-<%=i%>" value="<%=variant.text%>"/>   
+                    <input  name="text[<%=i%>][isCorrect]"   class="js-variant-is-correct-<%=i%>" type="checkbox"
+                    <% if(variant.isCorrect){ %>
+                        checked
+                    <% } %>
+                    />
+                    <div class="text-error-<%=i%> ml-3 alert alert-danger hide">
+                        Поле не должно быть пустым
+                    </div>
+            </div>
+         <% }) %>   
+    </div>
+    <button class="btn btn-primary w-50">Сохранить</button>
+</form>
+<script>
+    
+    $('#edit-question-form').on('submit',async function(e){
+        e.preventDefault();
+        const data ={
+            title:$('.js-title').val(),
+            variants:[]
+        };
+        let numOfVariants = Number("<%=question.variants.length%>");
+        for(let i=0;i<numOfVariants;i++){
+            if(!$(`.js-variant-text-${i}`).val().trim()){//строка пустая
+                $(`.js-variant-text-${i}`).css('border','3px solid red');
+                $(`.text-error-${i}`).removeClass('hide');
+                return;
+            }
+             let variant = {
+                text: $(`.js-variant-text-${i}`).val(),
+                isCorrect: $(`.js-variant-is-correct-${i}`).is(':checked')?true: false
+            }
+        data.variants.push(variant);
+        }
+        let response = await fetch('/admin/question/<%=question._id%>',
+        {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(data)
+        });
+        let incomeData = await response.json();
+         
+    })
+</script>

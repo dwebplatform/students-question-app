@@ -1,0 +1,40 @@
+
+<h3 class="py-3">Таблица студентов</h3>
+ <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">id</th>
+        <th scope="col">Имя студента</th>
+        <th scope="col">Фамилия</th>
+        <th scope="col">Группа</th>
+        <th scope="col">Кол-во правильных</th>
+        <th scope="col">Кол-во неправильных</th>
+        <th scope="col">Всего</th>
+      </tr>
+    </thead>
+    <tbody>
+        <% students.forEach(function(student){ 
+            var wrongAmount = 0;
+            var rightAmount = 0;
+            var totalAmount = 0;
+            for(var i=0;i<student.answers.length;i++){
+                totalAmount++;
+                if(student.answers[i].correctIndex===student.answers[i].answerIndex){
+                    rightAmount++;
+                } else{
+                    wrongAmount++;
+                }
+            }
+            %>
+            <tr>
+                <th scope="row"><%=student._id%></th>
+                <td><%=student.name%></td>
+                <td><%=student.secondname%></td>
+                <td><%=student.group %></td>
+                <td> <%=rightAmount %></td>
+                <td><%= wrongAmount %> </td>
+                <td><%=totalAmount%></td>
+              </tr>         
+        <% }) %>
+    </tbody>
+  </table>
